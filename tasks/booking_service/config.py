@@ -15,6 +15,10 @@ class Settings:
     REVIEW_SERVICE_URL: str = os.getenv("REVIEW_SERVICE_URL", "http://localhost:8084/api/reviews")
     PROMO_SERVICE_URL: str = os.getenv("PROMO_SERVICE_URL", "http://localhost:8084/api/promos")
 
+    # Kafka settings
+    KAFKA_BOOTSTRAP_SERVERS: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+    KAFKA_BOOKING_TOPIC: str = os.getenv("KAFKA_BOOKING_TOPIC", "booking-events")
+
     # App settings
     APP_HOST: str = os.getenv("APP_HOST", "0.0.0.0")
     APP_PORT: int = int(os.getenv("APP_PORT", "9090"))

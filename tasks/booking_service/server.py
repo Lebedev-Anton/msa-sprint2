@@ -52,7 +52,7 @@ class BookingServicer(BookingServiceServicer):
             logger.error("CreateBooking failed: %s", exc)
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(str(exc))
-            from tasks.booking_service.service.booking_pb2 import BookingResponse
+            from booking_service.service.booking_pb2 import BookingResponse
             return BookingResponse()
         finally:
             session.close()

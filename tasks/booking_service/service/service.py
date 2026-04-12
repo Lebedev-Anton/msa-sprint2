@@ -12,6 +12,7 @@ from booking_service.service.booking_pb2 import (
 )
 from booking_service.service.external_clients import HotelClient, PromoClient, ReviewClient, UserClient
 from booking_service.service.models import Booking
+from booking_service.service.kafka_producer import kafka_producer
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,19 @@ class BookingService:
         self.db_session.add(booking)
         self.db_session.commit()
         self.db_session.refresh(booking)
+
+        # Send booking event to Kafka
+        booking_data = {
+            "id": str(booking.id),
+            "user_id": booking.user_id or "",
+            "hotel_id": booking.hotel_id or "",
+            "promo_code": booking.promo_code or "",
+            "discount_percent": booking.discount_percent or 0.0,
+            "price": booking.price,
+            "created_at": booking.created_at.isoformat() if booking.created_at else "",
+        }
+        
+        kafka_producer.send_booking_event(booking_data)
 
         return BookingResponse(
             id=str(booking.id),

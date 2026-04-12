@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(jar *)",
+      "Bash(rm *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(python3 *)",
+      "Bash(tree *)",
+      "Bash(apt-get *)",
+      "Bash(true)",
+      "Bash(/tmp/bsenv/bin/pip *)",
+      "Bash(/tmp/bsenv/bin/python *)",
+      "Bash(docker run *)",
+      "Bash(pip install *)",
+      "Bash(pip3 install *)"
+    ]
+  },
+  "$version": 3
+}

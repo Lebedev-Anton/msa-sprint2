@@ -13,7 +13,13 @@
       "Bash(/tmp/bsenv/bin/python *)",
       "Bash(docker run *)",
       "Bash(pip install *)",
-      "Bash(pip3 install *)"
+      "Bash(pip3 install *)",
+      "Bash(bash *)",
+      "Bash(docker ps *)",
+      "Bash(docker logs *)",
+      "Bash(curl *)",
+      "Bash(javap *)",
+      "Bash(unzip *)"
     ]
   },
   "$version": 3

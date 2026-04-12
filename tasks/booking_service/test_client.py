@@ -8,7 +8,7 @@ import os
 # Add project root to path so imports resolve
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from service.booking_pb2 import BookingRequest, BookingListRequest, BookingListResponse, BookingResponse
+from tasks.booking_service.service.booking_pb2 import BookingRequest, BookingListRequest, BookingListResponse, BookingResponse
 
 LIST_METHOD = "/booking.BookingService/ListBookings"
 CREATE_METHOD = "/booking.BookingService/CreateBooking"

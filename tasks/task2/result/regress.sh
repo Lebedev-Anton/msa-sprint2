@@ -17,6 +17,11 @@ echo "🧪 Проверка подключения к БД (БРОНИРОВАН
 timeout 2 bash -c "</dev/tcp/${DB_BOOKING_HOST}/${DB_BOOKING_PORT}" \
   || { echo "❌ Не удалось подключиться к ${DB_BOOKING_HOST}:${DB_BOOKING_PORT}"; exit 1; }
 
+# Очистка БД booking_history_service перед тестом
+echo "🧹 Очистка БД booking_history_service..."
+PGPASSWORD="${DB_HISTORY_PASSWORD:-booking_history}" psql -h "${DB_HISTORY_HOST:-localhost}" -p "${DB_HISTORY_PORT:-5434}" -U "${DB_HISTORY_USER:-booking_history}" "${DB_HISTORY_NAME:-booking_history_service}" \
+  -c "DELETE FROM booking_history;"
+
 # Загрузка фикстур
 echo "🧪 Загрузка фикстур (БРОНИРОВАНИЕ)..."
 PGPASSWORD="${DB_BOOKING_PASSWORD}" psql -h "${DB_BOOKING_HOST}" -p "${DB_BOOKING_PORT}" -U "${DB_BOOKING_USER}" "${DB_BOOKING_NAME}" < init-fixtures_booking.sql
@@ -139,3 +144,32 @@ curl -s -o /dev/null -w "%{http_code}" -X POST "${BASE}/api/bookings?userId=test
   && pass "Отклонено: отель полностью забронирован" \
   || fail "Ошибка: сервер принял бронирование в полностью занятом отеле"
 echo "✅ Все HTTP-тесты пройдены!"
+
+echo ""
+echo "Тесты booking_history_service (Kafka → DB)..."
+
+
+# Ожидание обработки событий Kafka
+echo "⏳ Ожидание обработки событий Kafka..."
+sleep 5
+
+# Проверка: данные из топика booking-events должны быть сохранены в booking_history
+echo "🔍 Проверка данных в booking_history..."
+
+# Проверяем, что записи существуют (минимум 2 начальных бронирования из fixtures + новые, созданные HTTP-тестами)
+HISTORY_COUNT=$(PGPASSWORD="${DB_HISTORY_PASSWORD:-booking_history}" psql -h "${DB_HISTORY_HOST:-localhost}" -p "${DB_HISTORY_PORT:-5434}" -U "${DB_HISTORY_USER:-booking_history}" "${DB_HISTORY_NAME:-booking_history_service}" -t -c "SELECT count(*) FROM booking_history;")
+HISTORY_COUNT=$(echo "$HISTORY_COUNT" | tr -d ' ')
+
+if [[ "$HISTORY_COUNT" -ge 2 ]]; then
+  pass "booking_history содержит записи: $HISTORY_COUNT"
+else
+  fail "booking_history пуста или недостаточно записей (ожидается >= 2, получено: $HISTORY_COUNT)"
+fi
+
+# Проверяем конкретные бронирования из fixtures
+PGPASSWORD="${DB_HISTORY_PASSWORD:-booking_history}" psql -h "${DB_HISTORY_HOST:-localhost}" -p "${DB_HISTORY_PORT:-5434}" -U "${DB_HISTORY_USER:-booking_history}" "${DB_HISTORY_NAME:-booking_history_service}" \
+  -c "SELECT booking_id, user_id, hotel_id, price FROM booking_history ORDER BY saved_at;" | grep -q 'test-user-2' \
+  && pass "booking_history содержит бронирования test-user-2" \
+  || fail "booking_history не содержит бронирования test-user-2"
+
+echo "✅ Все тесты booking_history_service пройдены!"

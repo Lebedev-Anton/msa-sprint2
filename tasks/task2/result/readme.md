@@ -60,6 +60,11 @@ docker run --rm \
   -e DB_BOOKING_NAME=booking_service \
   -e DB_BOOKING_USER=booking \
   -e DB_BOOKING_PASSWORD=booking \
+  -e DB_HISTORY_HOST=host.docker.internal \
+  -e DB_HISTORY_PORT=5434 \
+  -e DB_HISTORY_NAME=booking_history_service \
+  -e DB_HISTORY_USER=booking_history \
+  -e DB_HISTORY_PASSWORD=booking_history \
   -e API_URL=http://host.docker.internal:8084 \
   hotelio-tester
 ```

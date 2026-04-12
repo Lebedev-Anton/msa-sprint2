@@ -19,7 +19,8 @@
       "Bash(docker logs *)",
       "Bash(curl *)",
       "Bash(javap *)",
-      "Bash(unzip *)"
+      "Bash(unzip *)",
+      "Bash(chmod *)"
     ]
   },
   "$version": 3

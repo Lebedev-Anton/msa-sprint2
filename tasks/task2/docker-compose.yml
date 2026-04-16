@@ -1,6 +1,46 @@
 version: "3.8"
 
 services:
+  booking-service:
+    build:
+      context: ../booking_service
+      dockerfile: Dockerfile
+    container_name: booking-service
+    ports:
+      - "9090:9090"
+    networks:
+      - hotelio-net
+    environment:
+      DB_HOST: booking-service-db
+      DB_PORT: 5432
+      DB_USER: booking
+      DB_PASSWORD: booking
+      DB_NAME: booking_service
+      USER_SERVICE_URL: http://hotelio-monolith:8080/api/users
+      HOTEL_SERVICE_URL: http://hotelio-monolith:8080/api/hotels
+      REVIEW_SERVICE_URL: http://hotelio-monolith:8080/api/reviews
+      PROMO_SERVICE_URL: http://hotelio-monolith:8080/api/promos
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_PORT: 9090
+    depends_on:
+      - booking-service-db
+      - kafka
+      - zookeeper
+  
+  booking-service-db:
+    image: postgres:15
+    container_name: booking-service-db
+    environment:
+      POSTGRES_USER: booking
+      POSTGRES_PASSWORD: booking
+      POSTGRES_DB: booking_service
+    ports:
+      - "5433:5432"
+    volumes:
+      - booking-service-db-data:/var/lib/postgresql/data
+    networks:
+      - hotelio-net
+  
   monolith:
     build:
       context: ../monolith
@@ -52,8 +92,44 @@ services:
     networks:
       - hotelio-net
 
+  booking-history-service:
+    build:
+      context: ../booking_history_service
+      dockerfile: Dockerfile
+    container_name: booking-history-service
+    networks:
+      - hotelio-net
+    environment:
+      DB_HOST: booking-history-service-db
+      DB_PORT: 5432
+      DB_USER: booking_history
+      DB_PASSWORD: booking_history
+      DB_NAME: booking_history_service
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_BOOKING_TOPIC: booking-events
+      KAFKA_CONSUMER_GROUP: booking-history-service
+    depends_on:
+      - booking-history-service-db
+      - booking-service
+
+  booking-history-service-db:
+    image: postgres:15
+    container_name: booking-history-service-db
+    environment:
+      POSTGRES_USER: booking_history
+      POSTGRES_PASSWORD: booking_history
+      POSTGRES_DB: booking_history_service
+    ports:
+      - "5434:5432"
+    volumes:
+      - booking-history-service-db-data:/var/lib/postgresql/data
+    networks:
+      - hotelio-net
+
 volumes:
+  booking-service-db-data:
   monolith-db-data:
+  booking-history-service-db-data:
 
 networks:
   hotelio-net:
